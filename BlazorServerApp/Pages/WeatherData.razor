@@ -1,0 +1,104 @@
+﻿@page "/weather"
+
+
+@inject IHttpClientFactory _clientFactory
+
+<h3>Weather Data</h3>
+
+@if(string.IsNullOrWhiteSpace(errorString) == false)
+{
+    <div class="h2">@errorString</div>
+}
+else if(forecast is null)
+{
+    <div class="spinner"/>
+}
+else
+{
+    <div class="h5 text-primary" style="font-weight:bold">Seoul, South-Korea</div>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Weather State</th>
+                <th>Low</th>
+                <th>High</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var w in forecast.Consolidated_weather)
+            {
+                <tr>
+                    <td>@w.applicable_date</td>
+                    <td>@w.weather_state_name</td>
+                    <td>@w.min_temp</td>
+                    <td>@w.max_temp</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+
+@code { 
+
+    WeatherForecastModel forecast;
+    string errorString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        #region SHORT CONCISE METHOD
+
+        // Traditional Method
+        //var client = _clientFactory.CreateClient();
+
+        // Named Client method
+        var client = _clientFactory.CreateClient("meta");
+
+        try
+        {
+            // Traditional method
+            //forecast = await client.GetFromJsonAsync<WeatherForecastModel>("https://www.metaweather.com/api/location/1132599/");
+            
+            // Using Named Client method
+            forecast = await client.GetFromJsonAsync<WeatherForecastModel>("location/1132599/");
+            
+            
+            errorString = null;
+        }
+        catch (Exception ex)
+        {
+            errorString = $"Error getting forecast: {ex.Message}";
+        }
+
+        #endregion
+
+
+        #region LONG TRADITIONAL METHOD
+
+        //var request = new HttpRequestMessage(HttpMethod.Get,
+        //    "https://www.metaweather.com/api/location/1132599/");
+
+        //// Creates a client using factory from pool
+        //// The resources are managed internally and 
+        //// resources are properly cleaned and disposed.
+        //var client = _clientFactory.CreateClient();
+
+        //HttpResponseMessage response = await client.SendAsync(request);
+
+        //if (response.IsSuccessStatusCode)
+        //{
+        //    forecast = await response.Content.ReadFromJsonAsync<WeatherForecastModel>();
+        //    errorString = null;
+        //}
+        //else
+        //{
+        //    errorString = $"Error getting forecast: {response.ReasonPhrase}";
+        //}
+
+        #endregion
+
+    }
+
+}
